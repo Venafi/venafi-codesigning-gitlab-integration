@@ -147,8 +147,8 @@ jobs:
       #     docker push "$IMAGE_NAME"
 
 
-  build_signtool_image:
-    name: Build Signtool image
+  build_windows_image:
+    name: Build Windows image
     runs-on: windows-2019
     needs: test
     strategy:
@@ -184,14 +184,14 @@ jobs:
         run: >
           docker build
           --pull
-          -f images/signtool/Dockerfile
-          -t signtool_image
+          -f images/windows/Dockerfile
+          -t windows_image
           .
 
       - name: Upload artifact
         run: |
           $image_name = "docker.io/$($env:DOCKER_USERNAME)/code-signing-artifact:cirun${{ github.run_number }}-${{ matrix.venafi_major_minor_version }}-windows"
-          docker tag signtool_image $image_name
+          docker tag windows_image $image_name
           if ($LastExitCode -ne 0) {
             exit 1
           }
@@ -205,7 +205,7 @@ jobs:
       - test
       - build_source_distro
       - build_linux_image
-      - build_signtool_image
+      - build_windows_image
     strategy:
       matrix:
         include: ${{ fromJSON(needs.test.outputs.matrix) }}
@@ -260,14 +260,14 @@ jobs:
           IS_LATEST_VENAFI_VERSION: ${{ matrix.is_latest_venafi_version }}
 
 
-  publish_signtool_image:
-    name: Publish Signtool image
+  publish_windows_image:
+    name: Publish Windows image
     runs-on: windows-2019
     needs:
       - test
       - build_source_distro
       - build_linux_image
-      - build_signtool_image
+      - build_windows_image
     strategy:
       matrix:
         include: ${{ fromJSON(needs.test.outputs.matrix) }}
