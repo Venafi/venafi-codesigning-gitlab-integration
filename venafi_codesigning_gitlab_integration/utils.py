@@ -127,6 +127,10 @@ def create_pkcs11_provider_config(path, user_provided_venafi_client_tools_dir):
         ).lstrip())
 
 
+def get_gpgconfig_tool_path(user_provided_venafi_client_tools_dir):
+    return pathlib.Path('/usr/local').joinpath('bin').joinpath('gpgconfig')
+
+
 def get_cspconfig_tool_path(user_provided_venafi_client_tools_dir):
     tools_dir = detect_venafi_client_tools_dir(user_provided_venafi_client_tools_dir)
     if is_windows_64_bit():
