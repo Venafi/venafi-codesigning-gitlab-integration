@@ -199,7 +199,8 @@ class SigntoolSignCommand:
         )
 
     def _invoke_powershell(self):
-        ps_command = '$cert=get-childitem -path cert: -Recurse | where {$_.subject -match (''CN="{0}"'' -f $env:CERTIFICATE_SUBJECT_NAME)};'
+        ps_command = '$cert=get-childitem -path cert: -Recurse | '
+        ps_command = 'where {$_.subject -match (''CN="{0}"'' -f $env:CERTIFICATE_SUBJECT_NAME)};'
         ps_command += 'if (@($cert).count -ne 1) {throw "not 1 cert"};'
         ps_command += 'Set-AuthenticodeSignature ' + self.config.input_path + ' -Certificate $cert'
 
@@ -210,7 +211,7 @@ class SigntoolSignCommand:
         ]
 
         if len(self.config.timestamping_servers) > 0:
-            command +=' -TimestampServer'
+            command += ' -TimestampServer'
             command += random.choice(
                 self.config.timestamping_servers)
 
