@@ -16,7 +16,7 @@ config_schema = dict(
 
     CERTIFICATE_LABEL=str,
     IMAGE=str,
-    
+
     EXTRA_TRUSTED_TLS_CA_CERTS=dict(cast=str, default=None),
     VENAFI_CLIENT_TOOLS_DIR=dict(cast=str, default=None),
     ISOLATE_SESSIONS=dict(cast=bool, default=True),
@@ -37,7 +37,6 @@ class CosignSignConfig:
     extra_trusted_tls_ca_certs: str = None
     isolate_sessions: bool = True
     venafi_client_tools_dir: str = None
-
 
     @classmethod
     def from_env(cls):
@@ -153,7 +152,7 @@ class CosignSignCommand:
             logging.exception('Unexpected exception during TPP logout')
 
     def _invoke_cosign(self):
-        
+
         command = [
             'cosign',
             'sign',

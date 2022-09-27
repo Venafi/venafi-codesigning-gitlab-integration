@@ -15,6 +15,7 @@ support_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'support')
 # Arbitrary PIN value since the Venafi PKCS#11 driver ignores this in favor of token
 pkcs11_pin_value = '1234'
 
+
 class AbortException(Exception):
     pass
 
