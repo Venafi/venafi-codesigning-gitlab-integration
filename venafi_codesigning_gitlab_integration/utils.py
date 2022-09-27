@@ -7,11 +7,14 @@ import json
 import pathlib
 import subprocess
 import shlex
+import urllib.parse
 if os.name == 'nt':
     import winreg
 
 support_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'support'))
 
+# Arbitrary PIN value since the Venafi PKCS#11 driver ignores this in favor of token
+pkcs11_pin_value = '1234'
 
 class AbortException(Exception):
     pass
@@ -139,6 +142,8 @@ def get_cspconfig_tool_path(user_provided_venafi_client_tools_dir):
         exe = 'CSPConfig-x86.exe'
     return tools_dir.joinpath(exe)
 
+def get_pkcs11_uri_path(certificate_label, user_provided_venafi_client_tools_dir) -> str:
+    return str('pkcs11:slot-id=0;object='+certificate_label+'?module-path=' + str(get_pkcs11_driver_library_path(user_provided_venafi_client_tools_dir))+'&pin-value=' + pkcs11_pin_value)
 
 def get_signtool_path(user_provided_signtool_path):
     if user_provided_signtool_path is not None:
