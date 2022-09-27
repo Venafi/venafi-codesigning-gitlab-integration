@@ -156,8 +156,8 @@ class CosignSignCommand:
         command = [
             'cosign',
             'sign',
-            '--key', 
-            utils.get_pkcs11_uri_path(self.config.certificate_label, self.config.venafi_client_tools_dir)
+            '--key',
+            utils.get_pkcs11_uri_path(self.config.certificate_label, self.config.venafi_client_tools_dir)  # noqa:E501
         ]
 
         command.append(self.config.image)
