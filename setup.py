@@ -31,7 +31,7 @@ setuptools.setup(
             'venafi-verify-jarsigner=venafi_codesigning_gitlab_integration.jarsigner_verify_command:main',  # noqa:E501
             'venafi-sign-signtool=venafi_codesigning_gitlab_integration.signtool_sign_command:main',  # noqa:E501
             'venafi-verify-signtool=venafi_codesigning_gitlab_integration.signtool_verify_command:main',  # noqa:E501
-            'venafi-sign-cosign=venafi_codesigning_gitlab_integration.cosign_sign_command:main', # noqa:E501
+            'venafi-sign-cosign=venafi_codesigning_gitlab_integration.cosign_sign_command:main',  # noqa:E501
         ]
     },
     install_requires=[

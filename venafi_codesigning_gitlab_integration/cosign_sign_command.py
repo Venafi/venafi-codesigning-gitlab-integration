@@ -1,16 +1,11 @@
 from dataclasses import dataclass
-from email.mime import image
-from typing import List
 from venafi_codesigning_gitlab_integration import utils
 import envparse
 import tempfile
 import logging
 import sys
-import os
 import base64
-import glob
 import secrets
-import random
 
 config_schema = dict(
     TPP_AUTH_URL=str,
@@ -25,7 +20,6 @@ config_schema = dict(
     EXTRA_TRUSTED_TLS_CA_CERTS=dict(cast=str, default=None),
     VENAFI_CLIENT_TOOLS_DIR=dict(cast=str, default=None),
     ISOLATE_SESSIONS=dict(cast=bool, default=True),
-
 )
 
 

@@ -7,7 +7,6 @@ import json
 import pathlib
 import subprocess
 import shlex
-import urllib.parse
 if os.name == 'nt':
     import winreg
 
@@ -142,8 +141,13 @@ def get_cspconfig_tool_path(user_provided_venafi_client_tools_dir):
         exe = 'CSPConfig-x86.exe'
     return tools_dir.joinpath(exe)
 
+
 def get_pkcs11_uri_path(certificate_label, user_provided_venafi_client_tools_dir) -> str:
-    return str('pkcs11:slot-id=0;object='+certificate_label+'?module-path=' + str(get_pkcs11_driver_library_path(user_provided_venafi_client_tools_dir))+'&pin-value=' + pkcs11_pin_value)
+    uri_path = 'pkcs11:slot-id=0;object='+certificate_label+'?module-path='
+    uri_path += str(get_pkcs11_driver_library_path(user_provided_venafi_client_tools_dir))
+    uri_path += '&pin-value=' + pkcs11_pin_value
+    return str(uri_path)
+
 
 def get_signtool_path(user_provided_signtool_path):
     if user_provided_signtool_path is not None:
