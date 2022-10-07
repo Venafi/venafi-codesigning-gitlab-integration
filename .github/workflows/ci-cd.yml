@@ -5,15 +5,14 @@ on:
     paths-ignore:
       - '*.md'
       - LICENSE.txt
-  workflow_dispatch:
-    inputs:
-      create_release:
-        description: 'Create a release? Set to true'
-        required: true
+  # workflow_dispatch:
+  #   inputs:
+  #     create_release:
+  #       description: 'Create a release? Set to true'
+  #       required: true
 
 env:
   DOCKER_USERNAME: venafi
-  # PYPI_USERNAME: fullstaq-venafi-gitlab-integration
   VENAFI_CLIENT_TOOL_VERSIONS: |
     [
       {
@@ -26,7 +25,10 @@ env:
         "venafi_major_minor_version": "22.1"
       },
       {
-        "venafi_major_minor_version": "22.2",
+        "venafi_major_minor_version": "22.2"
+      },
+      {
+        "venafi_major_minor_version": "22.3",
         "is_latest_venafi_version": true
       }
     ]
@@ -201,6 +203,7 @@ jobs:
   publish_linux_image:
     name: Publish Linux image
     runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/main'
     needs:
       - test
       - build_source_distro
@@ -255,7 +258,7 @@ jobs:
             echo "### Pushing latest image"
             docker push "$LATEST_IMAGE_NAME"
           fi
-        if: github.event.inputs.create_release == 'true'
+        # if: github.event.inputs.create_release == 'true'
         env:
           IS_LATEST_VENAFI_VERSION: ${{ matrix.is_latest_venafi_version }}
 
@@ -263,6 +266,7 @@ jobs:
   publish_windows_image:
     name: Publish Windows image
     runs-on: windows-2019
+    if: github.ref == 'refs/heads/main'
     needs:
       - test
       - build_source_distro
@@ -330,7 +334,7 @@ jobs:
               exit 1
             }
           }
-        if: github.event.inputs.create_release == 'true'
+        # if: github.event.inputs.create_release == 'true'
         env:
           IS_LATEST_VENAFI_VERSION: ${{ matrix.is_latest_venafi_version }}
 
