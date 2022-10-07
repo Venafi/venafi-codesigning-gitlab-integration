@@ -203,6 +203,7 @@ jobs:
   publish_linux_image:
     name: Publish Linux image
     runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/main'
     needs:
       - test
       - build_source_distro
@@ -265,6 +266,7 @@ jobs:
   publish_windows_image:
     name: Publish Windows image
     runs-on: windows-2019
+    if: github.ref == 'refs/heads/main'
     needs:
       - test
       - build_source_distro
