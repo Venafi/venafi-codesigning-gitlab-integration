@@ -5,11 +5,11 @@ on:
     paths-ignore:
       - '*.md'
       - LICENSE.txt
-  workflow_dispatch:
-    inputs:
-      create_release:
-        description: 'Create a release? Set to true'
-        required: true
+  # workflow_dispatch:
+  #   inputs:
+  #     create_release:
+  #       description: 'Create a release? Set to true'
+  #       required: true
 
 env:
   DOCKER_USERNAME: venafi
@@ -258,7 +258,7 @@ jobs:
             echo "### Pushing latest image"
             docker push "$LATEST_IMAGE_NAME"
           fi
-        if: github.event.inputs.create_release == 'true'
+        # if: github.event.inputs.create_release == 'true'
         env:
           IS_LATEST_VENAFI_VERSION: ${{ matrix.is_latest_venafi_version }}
 
@@ -334,7 +334,7 @@ jobs:
               exit 1
             }
           }
-        if: github.event.inputs.create_release == 'true'
+        # if: github.event.inputs.create_release == 'true'
         env:
           IS_LATEST_VENAFI_VERSION: ${{ matrix.is_latest_venafi_version }}
 
