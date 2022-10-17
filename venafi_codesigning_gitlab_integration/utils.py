@@ -12,6 +12,9 @@ if os.name == 'nt':
 
 support_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'support'))
 
+# Arbitrary PIN value since the Venafi PKCS#11 driver ignores this in favor of token
+pkcs11_pin_value = '1234'
+
 
 class AbortException(Exception):
     pass
@@ -138,6 +141,13 @@ def get_cspconfig_tool_path(user_provided_venafi_client_tools_dir):
     else:
         exe = 'CSPConfig-x86.exe'
     return tools_dir.joinpath(exe)
+
+
+def get_pkcs11_uri_path(certificate_label, user_provided_venafi_client_tools_dir) -> str:
+    uri_path = 'pkcs11:slot-id=0;object='+certificate_label+'?module-path='
+    uri_path += str(get_pkcs11_driver_library_path(user_provided_venafi_client_tools_dir))
+    uri_path += '&pin-value=' + pkcs11_pin_value
+    return str(uri_path)
 
 
 def get_signtool_path(user_provided_signtool_path):

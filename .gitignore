@@ -10,3 +10,4 @@ __pycache__
 /venv
 VenafiCodeSigningClients.rpm
 VenafiCodeSigningClients.msi
+cosign

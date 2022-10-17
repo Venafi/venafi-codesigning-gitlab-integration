@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 ADD DOCKER-IMAGE-LICENSE.txt /license.txt
 
-RUN apt-get update && apt-get install -y python3.10 python3-distutils python3-pip python3-apt openjdk-17-jdk alien
+RUN apt-get update && apt-get install -y python3.10 python3-distutils python3-pip python3-apt openjdk-17-jdk libpcsclite-dev alien
 
 # RUN dnf install -y python38 java-11-openjdk-devel && \
 #     dnf clean all
@@ -15,6 +15,13 @@ RUN alien -i --scripts /build/VenafiCodeSigningClients.rpm && \
 
 # RUN dnf install -y /build/*.rpm && \
 #     rm -f /build/*.rpm
+
+# Install Docker CE CLI
+RUN curl -fsSL https://get.docker.com -o get-docker.sh && \
+    sh get-docker.sh
+
+# Sigstore cosign for container signing with Venafi CSP
+ADD cosign /usr/bin/
 
 ADD . /build
 RUN cd /build && \
