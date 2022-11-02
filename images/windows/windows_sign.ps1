@@ -34,6 +34,7 @@ $cspArgs = @{
 
 if ( $DebugPreference -eq 'Continue' -or $env:VENAFI_CONTAINER_DEBUG_CSP -eq 'true' ) {
     Start-Process @cspArgs -ArgumentList 'trace', 'console', 'enable', 'out', 'stdout'
+    $debugOn = $true
 }
 
 try {
@@ -70,13 +71,17 @@ try {
                         $algo = $env:DIGEST_ALGORITHM
                     }
 
-                    $params.ArgumentList = 'sign', '/v', '/fd', $algo, '/sm', "/n '$env:CERTIFICATE_SUBJECT_NAME'"
+                    $params.ArgumentList = 'sign', '/v', '/fd', $algo, '/sm', "/n ""$env:CERTIFICATE_SUBJECT_NAME"""
 
                     if ( $env:TIMESTAMPING_SERVER ) {
                         $params.ArgumentList += '/tr', $env:TIMESTAMPING_SERVER, '/td', $algo
                     }
 
-                    $params.ArgumentList += "'$env:INPUT_PATH'"
+                    if ( $debugOn ) { $params.ArgumentList += '/debug' }
+
+                    $params.ArgumentList += """$env:INPUT_PATH"""
+
+                    if ( $debugOn ) { $params | ConvertTo-Json }
 
                     $result = Start-Process @params
                     switch ($result.ExitCode) {
