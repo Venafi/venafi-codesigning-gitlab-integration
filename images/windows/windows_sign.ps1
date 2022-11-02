@@ -21,6 +21,10 @@ if ( $envError ) {
 # needed for signtool
 Start-Process -FilePath 'regsvr32' -ArgumentList '/s', 'c:\windows\system32\venaficsp.dll' -Wait -NoNewWindow
 
+# support concurrent runs
+# https://docs.venafi.com/Docs/current/TopNav/Content/CodeSigning/t-codesigning-integration-multi-libhsm.php
+$env:LIBHSMINSTANCE = [uri]::EscapeDataString([convert]::ToBase64String([System.Text.Encoding]::utf8.getbytes((get-random))))
+
 $cspArgs = @{
     FilePath    = 'cspconfig.exe'
     NoNewWindow = $true
@@ -109,7 +113,7 @@ try {
                 }
 
                 Default {
-                    throw "Invalid action $_"
+                    throw "Invalid action $_.  'sign' and 'verify' are supported."
                 }
             }
         }
@@ -134,7 +138,7 @@ try {
                     if ( ($cert).Count -eq 0 ) {
                         throw 'no certificate found for signing'
                     } elseif ( ($cert).Count -gt 1 ) {
-                        throw 'more than 1 certificate found for signing'
+                        throw 'more than 1 certificate found for signing: ' + ($cert.Subject -join ', ')
                     }
 
                     $params = @{
@@ -160,17 +164,17 @@ try {
                 }
 
                 Default {
-                    throw "Invalid action $_"
+                    throw "Invalid action $_.  'sign' and 'verify' are supported."
                 }
             }
         }
 
         Default {
-            throw ('Unknown sign with option {0}' -f $_)
+            throw ('Unknown "sign with" option {0}' -f $_)
         }
     }
 } finally {
-    # logout
+
     $argList = @(
         'revokegrant',
         '-force',
