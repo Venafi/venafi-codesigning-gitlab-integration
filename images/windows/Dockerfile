@@ -1,41 +1,16 @@
 # escape=`
 
-FROM mcr.microsoft.com/windows/servercore:ltsc2019
+FROM mcr.microsoft.com/powershell:lts-windowsservercore-ltsc2022
 
-ADD DOCKER-IMAGE-LICENSE.txt \license.txt
+ADD images/windows/windows_sign.ps1 /app/
 
-# Install pwsh
-ADD images\windows\install-pwsh.ps1 \build\
-RUN powershell \build\install-pwsh.ps1
+ADD images/windows/winsdksetup.exe /
+RUN pwsh -command Start-Process .\\winsdksetup.exe -ArgumentList '/features OptionId.SigningTools','/q','/ceip off','/norestart','/log .\winsdksetup.log' -NoNewWindow -Wait -verbose; setx /M PATH ('{0}{1}' -f $env:path, 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64');Remove-Item -Force \winsdksetup*
 
-# Install Signtool
-ADD images\windows\install-signtool.ps1 \build\
-RUN powershell \build\install-signtool.ps1
+ADD VenafiCodeSigningClients.msi /
+RUN pwsh -command Start-Process msiexec -ArgumentList '/i VenafiCodeSigningClients.msi','/passive' -NoNewWindow -Wait; setx /M PATH ('{0}{1}\Venafi CodeSign Protect' -f $env:path, $env:ProgramFiles); Remove-Item -Force \VenafiCodeSigningClients.msi
 
-# Install Python
-ADD requirements-dist-build.txt \build\
-ADD images\windows\install-python.ps1 \build\
-RUN powershell \build\install-python.ps1
-
-# Install Venafi client tools
-ADD VenafiCodeSigningClients.msi \build\
-ADD images\windows\install-venafi-client-tools.ps1 \build\
-RUN powershell \build\install-venafi-client-tools.ps1
-
-# With VENAFICSPSilent, when an error occurs at the Venafi CSP driver level,
-# that error is printed as part of the console output, instead of shown
-# in a dialog box that requires the user to click OK.
 ENV VENAFICSPSilent=1
-ENV VENAFI_CONTAINER=true
-ENV VENAFI_CONTAINER_REGISTER_CSP_DLL=true
-ENV ISOLATE_SESSIONS=false
-ENTRYPOINT ["venafi-container-init"]
 
-# Install Gitlab integration
-ADD . \build
-ADD images\windows\install-gitlab-integration.ps1 \build\
-RUN powershell \build\install-gitlab-integration.ps1 && `
-    rmdir /s /q \build
+ENTRYPOINT ["pwsh", "-NoLogo", "-File", "/app/windows_sign.ps1"]
 
-# Sanity check
-RUN venafi-version

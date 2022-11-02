@@ -8,10 +8,11 @@ if ( $env:SIGN_WITH -eq 'signtool' ) {
 }
 
 $envError = $paramsNeeded | foreach-object {
+    $thisParam = $_
     try {
-        $null = get-item -path env:$_
+        $null = get-item -path env:$thisParam
     } catch {
-        $_
+        $thisParam
     }
 }
 if ( $envError ) {
@@ -23,7 +24,7 @@ Start-Process -FilePath 'regsvr32' -ArgumentList '/s', 'c:\windows\system32\vena
 
 # support concurrent runs
 # https://docs.venafi.com/Docs/current/TopNav/Content/CodeSigning/t-codesigning-integration-multi-libhsm.php
-$env:LIBHSMINSTANCE = [uri]::EscapeDataString([convert]::ToBase64String([System.Text.Encoding]::utf8.getbytes((get-random))))
+$env:LIBHSMINSTANCE = [uri]::EscapeDataString((Get-Random))
 
 $cspArgs = @{
     FilePath    = 'cspconfig.exe'
@@ -35,22 +36,22 @@ if ( $DebugPreference -eq 'Continue' -or $env:VENAFI_CONTAINER_DEBUG_CSP -eq 'tr
     Start-Process @cspArgs -ArgumentList 'trace', 'console', 'enable', 'out', 'stdout'
 }
 
-# getgrant
-$argList = @(
-    'getgrant',
-    '-force',
-    ('-authurl:{0}' -f $env:TPP_AUTH_URL),
-    ('-hsmurl:{0}' -f $env:TPP_HSM_URL),
-    ('-username:{0}' -f $env:TPP_USERNAME),
-    ('-password:{0}' -f $env:TPP_PASSWORD),
-    '-machine'
-)
-Start-Process @cspArgs -ArgumentList $argList
-
-# sync
-Start-Process @cspArgs -ArgumentList 'sync', '--verbose', '-machine'
-
 try {
+
+    # getgrant
+    $argList = @(
+        'getgrant',
+        '-force',
+        ('-authurl:{0}' -f $env:TPP_AUTH_URL),
+        ('-hsmurl:{0}' -f $env:TPP_HSM_URL),
+        ('-username:{0}' -f $env:TPP_USERNAME),
+        ('-password:{0}' -f $env:TPP_PASSWORD),
+        '-machine'
+    )
+    Start-Process @cspArgs -ArgumentList $argList
+
+    # sync
+    Start-Process @cspArgs -ArgumentList 'sync', '--verbose', '-machine'
 
     # sign
     switch ($env:SIGN_WITH) {
