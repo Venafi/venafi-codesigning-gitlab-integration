@@ -5,23 +5,14 @@ FROM mcr.microsoft.com/powershell:lts-windowsservercore-ltsc2022
 
 ADD images/windows/windows_sign.ps1 /app/
 
-ADD images/windows/webhooklisten.exe /
 ADD images/windows/winsdksetup.exe /
-# Start-Process -Wait -NoNewWindow -PassThru \build\winsdksetup.exe `
-#     -ArgumentList ('/Features','OptionId.SigningTools','/Quiet','/NoRestart','/Log','\winsdksetup.log')
 RUN pwsh -command Start-Process .\\winsdksetup.exe -ArgumentList '/features OptionId.SigningTools','/q','/ceip off','/norestart','/log .\winsdksetup.log' -NoNewWindow -Wait -verbose; [system.environment]::SetEnvironmentVariable('Path',([system.environment]::GetEnvironmentVariable('Path','Machine') + 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64'),'Machine');Remove-Item -Force \winsdksetup*
-# RUN [".\images\windows\winsdksetup.exe", '/Features','OptionId.SigningTools','/Quiet','/NoRestart']
-
-# ADD images\windows\install-signtool.ps1 \build\
-# RUN pwsh \build\install-signtool.ps1
 
 ADD VenafiCodeSigningClients.msi /
 RUN pwsh -command Start-Process msiexec -ArgumentList '/i VenafiCodeSigningClients.msi','/passive' -NoNewWindow -Wait; setx /M PATH ('{0};{1}\Venafi CodeSign Protect' -f $env:path, $env:ProgramFiles); Remove-Item -Force \VenafiCodeSigningClients.msi
-# ADD images\windows\install-venafi-client-tools.ps1 \build\
-# RUN powershell \build\install-venafi-client-tools.ps1
 
 ENV VENAFICSPSilent=1
 
-# ENTRYPOINT ["pwsh"]
+ENTRYPOINT ["pwsh"]
 # ENTRYPOINT ["pwsh", "-NoExit", "-NoLogo", "-File", "/app/windows_sign.ps1"]
 
