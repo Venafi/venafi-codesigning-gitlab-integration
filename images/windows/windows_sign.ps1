@@ -1,6 +1,13 @@
 [CmdletBinding()]
 
-$envError = 'TPP_AUTH_URL', 'TPP_HSM_URL', 'TPP_USERNAME', 'TPP_PASSWORD', 'SIGN_WITH', 'SIGN_ACTION', 'INPUT_PATH' | foreach-object {
+$ErrorActionPreference = 'Stop'
+
+$paramsNeeded = 'TPP_AUTH_URL', 'TPP_HSM_URL', 'TPP_USERNAME', 'TPP_PASSWORD', 'SIGN_WITH', 'SIGN_ACTION', 'INPUT_PATH'
+if ( $env:SIGN_WITH -eq 'signtool' ) {
+    $paramsNeeded += 'CERTIFICATE_SUBJECT_NAME'
+}
+
+$envError = $paramsNeeded | foreach-object {
     try {
         $null = get-item -path env:$_
     } catch {
@@ -10,6 +17,9 @@ $envError = 'TPP_AUTH_URL', 'TPP_HSM_URL', 'TPP_USERNAME', 'TPP_PASSWORD', 'SIGN
 if ( $envError ) {
     throw ('Environment variables not found: {0}' -f ($envError -join ', '))
 }
+
+# needed for signtool
+Start-Process -FilePath 'regsvr32' -ArgumentList '/s', 'c:\windows\system32\venaficsp.dll' -Wait -NoNewWindow
 
 $cspArgs = @{
     FilePath    = 'cspconfig.exe'
@@ -41,14 +51,53 @@ try {
     # sign
     switch ($env:SIGN_WITH) {
         'signtool' {
+            $params = @{
+                FilePath    = 'signtool'
+                Wait        = $true
+                NoNewWindow = $true
+                PassThru    = $true
+            }
+
             switch ($env:SIGN_ACTION) {
                 'sign' {
+                    $algo = 'sha256'
+                    if ( $env:DIGEST_ALGORITHM ) {
+                        $algo = $env:DIGEST_ALGORITHM
+                    }
 
+                    $params.ArgumentList = 'sign', '/v', '/fd', $algo, '/sm', "/n '$env:CERTIFICATE_SUBJECT_NAME'"
+
+                    if ( $env:TIMESTAMPING_SERVER ) {
+                        $params.ArgumentList += '/tr', $env:TIMESTAMPING_SERVER, '/td', $algo
+                    }
+
+                    $params.ArgumentList += "'$env:INPUT_PATH'"
+
+                    $result = Start-Process @params
+                    switch ($result.ExitCode) {
+                        0 {
+                            'signing successful'
+                        }
+
+                        1 {
+                            throw 'signing failed'
+                        }
+
+                        2 {
+                            Write-Warning 'signing succeeded with warnings'
+                        }
+                    }
                 }
 
                 'verify' {
-                    $result = Start-Process -FilePath signtool -ArgumentList 'verify', '/pa', $env:INPUT_PATH
+                    $params.ArgumentList = 'verify', '/pa', $env:INPUT_PATH
+                    $result = Start-Process @params
+
                     switch ($result.ExitCode) {
+                        0 {
+                            'signing verification successful'
+                        }
+
                         1 {
                             throw 'verify failed'
                         }
@@ -78,15 +127,23 @@ try {
 
                     $cert = Get-ChildItem Cert:\LocalMachine\My -CodeSigningCert
 
-                    # TODO: validate subject name
+                    if ( $env:CERTIFICATE_SUBJECT_NAME ) {
+                        $cert = $cert | Where-Object { $_.Subject -like ('*{0}*' -f $env:CERTIFICATE_SUBJECT_NAME) }
+                    }
+
+                    if ( ($cert).Count -eq 0 ) {
+                        throw 'no certificate found for signing'
+                    } elseif ( ($cert).Count -gt 1 ) {
+                        throw 'more than 1 certificate found for signing'
+                    }
 
                     $params = @{
                         Certificate = $cert
                         FilePath    = $signMe
                     }
 
-                    if ( $env:TIMESTAMPING_SERVERS ) {
-                        $params.TimestampServer = $env:TIMESTAMPING_SERVERS
+                    if ( $env:TIMESTAMPING_SERVER ) {
+                        $params.TimestampServer = $env:TIMESTAMPING_SERVER
                     }
 
                     Set-AuthenticodeSignature @params

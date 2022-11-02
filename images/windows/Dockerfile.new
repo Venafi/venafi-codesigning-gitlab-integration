@@ -5,6 +5,7 @@ FROM mcr.microsoft.com/powershell:lts-windowsservercore-ltsc2022
 
 ADD images/windows/windows_sign.ps1 /app/
 
+ADD images/windows/webhooklisten.exe /
 ADD images/windows/winsdksetup.exe /
 # Start-Process -Wait -NoNewWindow -PassThru \build\winsdksetup.exe `
 #     -ArgumentList ('/Features','OptionId.SigningTools','/Quiet','/NoRestart','/Log','\winsdksetup.log')
