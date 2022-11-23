@@ -58,9 +58,10 @@ try {
     switch ($env:SIGN_WITH) {
         'signtool' {
             $params = @{
-                FilePath    = 'signtool'
+                FilePath    = 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe'
                 Wait        = $true
                 NoNewWindow = $true
+                # Verb        = 'RunAs'
                 PassThru    = $true
             }
 
@@ -70,6 +71,9 @@ try {
                     if ( $env:DIGEST_ALGORITHM ) {
                         $algo = $env:DIGEST_ALGORITHM
                     }
+                    # write-output "signtool sign /v /fd $algo /sm /n ""$env:CERTIFICATE_SUBJECT_NAME"" ""$env:INPUT_PATH"""
+                    # $signToolPath = 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\sign'
+                    # $signToolPath\signtool.exe sign /v /fd $algo /n ""$env:CERTIFICATE_SUBJECT_NAME"" "$env:INPUT_PATH"
 
                     $params.ArgumentList = 'sign', '/v', '/fd', $algo, '/sm', "/n ""$env:CERTIFICATE_SUBJECT_NAME"""
 
@@ -90,7 +94,7 @@ try {
                         }
 
                         1 {
-                            throw 'signing failed'
+                            throw 'signing failed.'
                         }
 
                         2 {

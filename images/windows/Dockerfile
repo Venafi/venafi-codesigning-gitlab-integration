@@ -5,6 +5,11 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
 ADD images/windows/windows_sign.ps1 /app/
 
+# ADD images/windows/pwsh-installer.msi /
+# RUN powershell -command Start-Process msiexec -ArgumentList '/package','pwsh-installer.msi','/quiet','REGISTER_MANIFEST=1','ADD_PATH=1' -NoNewWindow -Wait; Remove-Item -Force \pwsh*
+# RUN powershell -command 'iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -quiet"'
+RUN powershell -command irm https://aka.ms/install-powershell.ps1 -o .\install-powershell.ps1; .\install-powershell.ps1 -UseMSI -Quiet; Remove-Item .\install-powershell.ps1 -Force
+
 ADD images/windows/winsdksetup.exe /
 RUN powershell -command Start-Process .\\winsdksetup.exe -ArgumentList '/features OptionId.SigningTools','/q','/ceip off','/norestart','/log .\winsdksetup.log' -NoNewWindow -Wait -verbose; setx /M PATH ('{0};{1}' -f $env:path, 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64');Remove-Item -Force \winsdksetup*
 
@@ -12,6 +17,7 @@ ADD VenafiCodeSigningClients.msi /
 RUN powershell -command Start-Process msiexec -ArgumentList '/i VenafiCodeSigningClients.msi','/passive' -NoNewWindow -Wait; setx /M PATH ('{0};{1}\Venafi CodeSign Protect' -f $env:path, $env:ProgramFiles); Remove-Item -Force \VenafiCodeSigningClients.msi
 
 ENV VENAFICSPSilent=1
+ENV SIGNTOOL_PATH="C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe"
 
-ENTRYPOINT ["powershell", "-NoLogo", "-File", "/app/windows_sign.ps1"]
+ENTRYPOINT ["pwsh", "-NoLogo", "-File", "/app/windows_sign.ps1"]
 
